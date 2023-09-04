@@ -20,8 +20,9 @@ export function parseYAML(
   let description = defaultValue
   let using = description
 
+  let parsed: any
   try {
-    const parsed = YAML.parse(content)
+    parsed = YAML.parse(content)
     name = parsed.name ? sanitize(parsed.name) : defaultValue
     author = parsed.author ? sanitize(parsed.author) : defaultValue
     description = parsed.description
@@ -43,7 +44,36 @@ export function parseYAML(
       `The parsing error is informational, seaching for actions has continued`
     )
   }
-  return {name, author, description, using}
+
+  const steps = parseSteps(parsed)
+
+  return {name, author, description, using, steps}
+}
+
+function splitUsesStatement(uses: string): {action:string, ref:string} {
+  const split = uses.split('@')
+  const action = split[0]
+  const ref = split[1]
+  return {action, ref}
+}
+
+function parseSteps(parsed: any): {actions: {action:string, ref:string}[], shell: string[]} {
+  const actions: {action:string, ref:string}[] = []
+  const shell: string[] = []
+  if (parsed.runs && parsed.runs.steps) {
+    parsed.runs.steps.forEach((step: any) => {
+      if (step.uses) {
+        // todo: split uses statement into action and ref
+        const uses = splitUsesStatement(step.uses)
+        actions.push(uses)
+      }
+      if (step.run) {
+        // todo: split uses statement into action and ref
+        shell.push(step.name)
+      }
+    })
+  }
+  return {actions, shell}
 }
 
 export function sanitize(value: string) {

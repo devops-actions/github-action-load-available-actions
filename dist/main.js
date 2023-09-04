@@ -32677,8 +32677,9 @@ function parseYAML(filePath, repo, content) {
   let author = defaultValue;
   let description = defaultValue;
   let using = description;
+  let parsed;
   try {
-    const parsed = import_yaml.default.parse(content);
+    parsed = import_yaml.default.parse(content);
     name = parsed.name ? sanitize(parsed.name) : defaultValue;
     author = parsed.author ? sanitize(parsed.author) : defaultValue;
     description = parsed.description ? sanitize(parsed.description) : defaultValue;
@@ -32693,7 +32694,30 @@ function parseYAML(filePath, repo, content) {
       `The parsing error is informational, seaching for actions has continued`
     );
   }
-  return { name, author, description, using };
+  const steps = parseSteps(parsed);
+  return { name, author, description, using, steps };
+}
+function splitUsesStatement(uses) {
+  const split = uses.split("@");
+  const action = split[0];
+  const ref = split[1];
+  return { action, ref };
+}
+function parseSteps(parsed) {
+  const actions = [];
+  const shell = [];
+  if (parsed.runs && parsed.runs.steps) {
+    parsed.runs.steps.forEach((step) => {
+      if (step.uses) {
+        const uses = splitUsesStatement(step.uses);
+        actions.push(uses);
+      }
+      if (step.run) {
+        shell.push(step.name);
+      }
+    });
+  }
+  return { actions, shell };
 }
 function sanitize(value) {
   return import_string_sanitizer.default.sanitize.keepSpace(value);
@@ -32840,7 +32864,7 @@ async function enrichActionFiles(client, actionFiles) {
     core3.debug(`Enrich action information from file: [${action.downloadUrl}]`);
     if (action.downloadUrl) {
       const { data: content } = await client.request({ url: action.downloadUrl });
-      const { name, author, description, using } = parseYAML(
+      const { name, author, description, using, steps } = parseYAML(
         action.downloadUrl,
         action.repo,
         content
@@ -32849,6 +32873,7 @@ async function enrichActionFiles(client, actionFiles) {
       action.author = author;
       action.description = description;
       action.using = using;
+      action.steps = steps;
     }
   }
   return actionFiles;

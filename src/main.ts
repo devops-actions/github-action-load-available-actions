@@ -117,6 +117,7 @@ export class ActionContent {
   readme: string | undefined
   using: string | undefined
   isArchived: boolean | undefined
+  steps: any | undefined
 }
 
 export class WorkflowContent {
@@ -161,7 +162,7 @@ async function enrichActionFiles(
       const {data: content} = await client.request({url: action.downloadUrl})
 
       // try to parse the yaml
-      const {name, author, description, using} = parseYAML(
+      const {name, author, description, using, steps} = parseYAML(
         action.downloadUrl,
         action.repo,
         content
@@ -170,6 +171,7 @@ async function enrichActionFiles(
       action.author = author
       action.description = description
       action.using = using
+      action.steps = steps
     }
   }
   return actionFiles
