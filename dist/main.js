@@ -32686,6 +32686,7 @@ function parseYAML(filePath, repo, content) {
     if (parsed.runs) {
       using = parsed.runs.using ? sanitize(parsed.runs.using) : defaultValue;
     }
+    const steps2 = parseSteps(parsed);
   } catch (error2) {
     core.warning(
       `Error parsing action file [${filePath}] in repo [${repo}] with error: ${error2}`
@@ -32694,7 +32695,6 @@ function parseYAML(filePath, repo, content) {
       `The parsing error is informational, seaching for actions has continued`
     );
   }
-  const steps = parseSteps(parsed);
   return { name, author, description, using, steps };
 }
 function splitUsesStatement(uses) {
@@ -32706,7 +32706,7 @@ function splitUsesStatement(uses) {
 function parseSteps(parsed) {
   const actions = [];
   const shell = [];
-  if (parsed.runs && parsed.runs.steps) {
+  if (parsed && parsed.runs && parsed.runs.steps) {
     parsed.runs.steps.forEach((step) => {
       if (step.uses) {
         const uses = splitUsesStatement(step.uses);
@@ -32785,7 +32785,7 @@ var import_yaml2 = __toESM(require_dist());
 import_dotenv.default.config();
 var getInputOrEnv = (input) => core3.getInput(input) || process.env[input] || "";
 function getHostName() {
-  const hostName = process.env["GITHUB_SERVER_URL"] || "github.com";
+  const hostName = process.env["GITHUB_SERVER_URL"] || "https://github.com";
   return hostName;
 }
 var removeTokenSetting = getInputOrEnv("removeToken");
@@ -32864,7 +32864,7 @@ async function enrichActionFiles(client, actionFiles) {
     core3.debug(`Enrich action information from file: [${action.downloadUrl}]`);
     if (action.downloadUrl) {
       const { data: content } = await client.request({ url: action.downloadUrl });
-      const { name, author, description, using, steps } = parseYAML(
+      const { name, author, description, using, steps: steps2 } = parseYAML(
         action.downloadUrl,
         action.repo,
         content
@@ -32873,7 +32873,7 @@ async function enrichActionFiles(client, actionFiles) {
       action.author = author;
       action.description = description;
       action.using = using;
-      action.steps = steps;
+      action.steps = steps2;
     }
   }
   return actionFiles;
@@ -32975,7 +32975,7 @@ async function getActionableDockerFiles(client, username, organization, isEnterp
       actionableDockerFiles?.map((item) => {
         item.author = repoOwner;
         item.repo = repoName;
-        item.downloadUrl = `https://${hostname}/${repoOwner}/${repoName}.git`;
+        item.downloadUrl = `${hostname}/${repoOwner}/${repoName}.git`;
       });
       dockerActions = actionableDockerFiles;
     }
@@ -33029,7 +33029,7 @@ async function getAllActionsFromForkedRepos(client, username, organization, isEn
 }
 function cloneRepo(repo, owner) {
   try {
-    const repolink = `https://${hostname}/${owner}/${repo}.git`;
+    const repolink = `${hostname}/${owner}/${repo}.git`;
     const repoPath = "actions";
     if (import_fs2.default.existsSync(repoPath)) {
       core3.debug("folder already exists, deleting");

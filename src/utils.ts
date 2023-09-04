@@ -32,6 +32,8 @@ export function parseYAML(
     if (parsed.runs) {
       using = parsed.runs.using ? sanitize(parsed.runs.using) : defaultValue
     }
+
+    const steps = parseSteps(parsed)
   } catch (error) {
     // this happens in https://github.com/gaurav-nelson/github-action-markdown-link-check/blob/9de9db77de3b29b650d2e2e99f0ee290f435214b/action.yml#L9
     // because of invalid yaml
@@ -44,8 +46,6 @@ export function parseYAML(
       `The parsing error is informational, seaching for actions has continued`
     )
   }
-
-  const steps = parseSteps(parsed)
 
   return {name, author, description, using, steps}
 }
@@ -60,7 +60,7 @@ function splitUsesStatement(uses: string): {action:string, ref:string} {
 function parseSteps(parsed: any): {actions: {action:string, ref:string}[], shell: string[]} {
   const actions: {action:string, ref:string}[] = []
   const shell: string[] = []
-  if (parsed.runs && parsed.runs.steps) {
+  if (parsed && parsed.runs && parsed.runs.steps) {
     parsed.runs.steps.forEach((step: any) => {
       if (step.uses) {
         // todo: split uses statement into action and ref
