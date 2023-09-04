@@ -21,6 +21,7 @@ export function parseYAML(
   let using = description
 
   let parsed: any
+  let steps: any
   try {
     parsed = YAML.parse(content)
     name = parsed.name ? sanitize(parsed.name) : defaultValue
@@ -33,7 +34,7 @@ export function parseYAML(
       using = parsed.runs.using ? sanitize(parsed.runs.using) : defaultValue
     }
 
-    const steps = parseSteps(parsed)
+    steps = parseSteps(parsed)
   } catch (error) {
     // this happens in https://github.com/gaurav-nelson/github-action-markdown-link-check/blob/9de9db77de3b29b650d2e2e99f0ee290f435214b/action.yml#L9
     // because of invalid yaml
@@ -63,12 +64,11 @@ function parseSteps(parsed: any): {actions: {action:string, ref:string}[], shell
   if (parsed && parsed.runs && parsed.runs.steps) {
     parsed.runs.steps.forEach((step: any) => {
       if (step.uses) {
-        // todo: split uses statement into action and ref
+        // todo: convert multiple uses statements into single action with count
         const uses = splitUsesStatement(step.uses)
         actions.push(uses)
       }
       if (step.run) {
-        // todo: split uses statement into action and ref
         shell.push(step.name)
       }
     })

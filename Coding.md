@@ -6,6 +6,8 @@ Set these before starting VsCode:
     process.env.GITHUB_USER='rajbos'
 ```
 
+All development is currently done using unit tests. Changing this to be able to run the javascripts part locally to make development easier would be a great step.
+
 # Publishing
 Publishing a new version is done through Git Tags. You can add a tag by calling the shell command below. The `-m` option is for the message that annotates the tag.
 

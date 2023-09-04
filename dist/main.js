@@ -32678,6 +32678,7 @@ function parseYAML(filePath, repo, content) {
   let description = defaultValue;
   let using = description;
   let parsed;
+  let steps;
   try {
     parsed = import_yaml.default.parse(content);
     name = parsed.name ? sanitize(parsed.name) : defaultValue;
@@ -32686,7 +32687,7 @@ function parseYAML(filePath, repo, content) {
     if (parsed.runs) {
       using = parsed.runs.using ? sanitize(parsed.runs.using) : defaultValue;
     }
-    const steps2 = parseSteps(parsed);
+    steps = parseSteps(parsed);
   } catch (error2) {
     core.warning(
       `Error parsing action file [${filePath}] in repo [${repo}] with error: ${error2}`
@@ -32864,7 +32865,7 @@ async function enrichActionFiles(client, actionFiles) {
     core3.debug(`Enrich action information from file: [${action.downloadUrl}]`);
     if (action.downloadUrl) {
       const { data: content } = await client.request({ url: action.downloadUrl });
-      const { name, author, description, using, steps: steps2 } = parseYAML(
+      const { name, author, description, using, steps } = parseYAML(
         action.downloadUrl,
         action.repo,
         content
@@ -32873,7 +32874,7 @@ async function enrichActionFiles(client, actionFiles) {
       action.author = author;
       action.description = description;
       action.using = using;
-      action.steps = steps2;
+      action.steps = steps;
     }
   }
   return actionFiles;
