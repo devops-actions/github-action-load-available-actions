@@ -20,7 +20,7 @@ const getInputOrEnv = (input: string) =>
   core.getInput(input) || process.env[input] || ''
 
 function getHostName(): string {
-  const hostName = process.env['GITHUB_SERVER_URL'] || 'github.com'
+  const hostName = process.env['GITHUB_SERVER_URL'] || 'https://github.com'
   return hostName
 }
 
@@ -325,7 +325,7 @@ async function getActionableDockerFiles(
       actionableDockerFiles?.map(item => {
         item.author = repoOwner
         item.repo = repoName
-        item.downloadUrl = `https://${hostname}/${repoOwner}/${repoName}.git`
+        item.downloadUrl = `${hostname}/${repoOwner}/${repoName}.git`
       })
       dockerActions = actionableDockerFiles
     }
@@ -405,7 +405,7 @@ async function getAllActionsFromForkedRepos(
 
 function cloneRepo(repo: string, owner: string): string {
   try {
-    const repolink = `https://${hostname}/${owner}/${repo}.git`
+    const repolink = `${hostname}/${owner}/${repo}.git`
     // create a temp directory
     const repoPath = 'actions'
     if (fs.existsSync(repoPath)) {
